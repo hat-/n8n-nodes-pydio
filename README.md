@@ -35,7 +35,7 @@ In n8n create a new credential of type **Pydio Cells API** with:
 | **Delete** | `path`, `permanent` | `{ path, deleted, permanent }` |
 | **Get Metadata** | `path` | Pydio node object (size, mtime, uuid, …) |
 | **Exists** | `path` | `{ path, exists }` |
-| **Search** | `query`, optional `scopePathPrefix`, `limit` | `{ results: [...] }` |
+| **Search** | `query`, optional `scopePathPrefix`, `limit` | `{ results: [...] }` (files only) |
 | **Get Share Link** | `path`, optional label/expiry/password/allowUpload | `{ Url, Uuid }` |
 
 ### Folder
@@ -49,6 +49,7 @@ In n8n create a new credential of type **Pydio Cells API** with:
 | **Delete** | `path`, `permanent` | `{ deleted }` (recursive) |
 | **List** | `path`, `maxDepth` | `{ results: [...] }` |
 | **Exists** | `path` | `{ exists }` |
+| **Search** | `query`, optional `scopePathPrefix`, `limit` | `{ results: [...] }` (folders only) |
 
 ### Folder list depth
 

@@ -317,7 +317,11 @@ export class PydioClient {
 
 	async search(
 		query: string,
-		options: { pathPrefix?: string; limit?: number } = {},
+		options: {
+			pathPrefix?: string;
+			limit?: number;
+			type?: 'LEAF' | 'COLLECTION';
+		} = {},
 	): Promise<PydioNode[]> {
 		const body: IDataObject = {
 			Query: { FreeString: query },
@@ -328,12 +332,22 @@ export class PydioClient {
 				normalizePath(options.pathPrefix, this.creds.workspace) + '/',
 			];
 		}
+		// Pydio's NodeQuery has a Type field (1=LEAF, 2=COLLECTION). We also
+		// post-filter to be defensive against API versions that ignore the
+		// hint or return mixed results.
+		if (options.type === 'LEAF') {
+			(body.Query as IDataObject).Type = 'LEAF';
+		} else if (options.type === 'COLLECTION') {
+			(body.Query as IDataObject).Type = 'COLLECTION';
+		}
 		const res = await this.apiRequest<{ Results?: PydioNode[] }>(
 			'POST',
 			'/a/search/nodes',
 			body,
 		);
-		return res.Results ?? [];
+		const results = res.Results ?? [];
+		if (!options.type) return results;
+		return results.filter((n) => n.Type === options.type);
 	}
 
 	async createShareLink(

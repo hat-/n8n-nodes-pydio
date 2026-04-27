@@ -87,6 +87,7 @@ export class PydioCells implements INodeType {
 					{ name: 'Delete', value: 'delete', action: 'Delete a folder', description: 'Recursively deletes the folder and all its content' },
 					{ name: 'List', value: 'list', action: 'List folder contents', description: 'List immediate children (or recursive)' },
 					{ name: 'Exists', value: 'exists', action: 'Check if a folder exists' },
+					{ name: 'Search', value: 'search', action: 'Search folders', description: 'Search for folders by free-string query, optionally scoped to a parent folder' },
 				],
 			},
 			/* ---------- Common path ---------- */
@@ -225,9 +226,14 @@ export class PydioCells implements INodeType {
 					const query = this.getNodeParameter('query', i) as string;
 					const scope = this.getNodeParameter('scopePathPrefix', i, '') as string;
 					const limit = this.getNodeParameter('searchLimit', i, 100) as number;
+					// Type filter is implicit in the resource: File search → LEAF
+					// only, Folder search → COLLECTION only.
+					const typeFilter: 'LEAF' | 'COLLECTION' =
+						resource === 'folder' ? 'COLLECTION' : 'LEAF';
 					result = await client.search(query, {
 						pathPrefix: scope || undefined,
 						limit,
+						type: typeFilter,
 					});
 				} else {
 					const path = this.getNodeParameter('path', i) as string;

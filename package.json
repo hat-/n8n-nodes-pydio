@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-pydio",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "n8n community node for Pydio Cells — file & folder operations",
   "keywords": [
     "n8n-community-node-package",
