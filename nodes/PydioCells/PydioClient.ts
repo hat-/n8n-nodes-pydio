@@ -391,7 +391,9 @@ const HREF_RE = /<(?:D:)?href>([^<]+)<\/(?:D:)?href>/i;
 const RESPONSE_RE = /<(?:D:)?response[\s\S]*?<\/(?:D:)?response>/gi;
 const TAG_RE = (tag: string) =>
 	new RegExp(`<(?:D:)?${tag}>([^<]*)<\\/(?:D:)?${tag}>`, 'i');
-const COLLECTION_RE = /<(?:D:)?collection\s*\/?>(?:<\/(?:D:)?collection>)?/i;
+// Matches `<D:collection/>`, `<collection/>`, and namespace-decorated
+// variants like `<D:collection xmlns:D="DAV:"/>` that Pydio Cells emits.
+const COLLECTION_RE = /<(?:D:)?collection\b[^>]*\/?>(?:<\/(?:D:)?collection>)?/i;
 
 function parsePropfindEntries(xml: string): PropEntry[] {
 	const out: PropEntry[] = [];
