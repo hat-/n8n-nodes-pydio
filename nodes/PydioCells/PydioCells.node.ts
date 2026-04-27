@@ -160,12 +160,13 @@ export class PydioCells implements INodeType {
 			},
 			/* ---------- List options ---------- */
 			{
-				displayName: 'Recursive',
-				name: 'recursive',
-				type: 'boolean',
-				default: false,
+				displayName: 'Max Depth',
+				name: 'maxDepth',
+				type: 'number',
+				default: 1,
+				typeOptions: { minValue: 0 },
 				description:
-					'If on, also returns descendants of subfolders (not just immediate children)',
+					'How many folder levels deep to descend. 1 = immediate children only. 2 = children + grandchildren. 0 = unlimited (whole subtree — slow on large folders).',
 				displayOptions: { show: { resource: ['folder'], operation: ['list'] } },
 			},
 			/* ---------- Search ---------- */
@@ -254,8 +255,8 @@ export class PydioCells implements INodeType {
 						await client.rename(path, newName);
 						result = { path, newName, renamed: true };
 					} else if (operation === 'list' && resource === 'folder') {
-						const recursive = this.getNodeParameter('recursive', i, false) as boolean;
-						result = await client.list(path, recursive);
+						const maxDepth = this.getNodeParameter('maxDepth', i, 1) as number;
+						result = await client.list(path, maxDepth);
 					} else if (operation === 'upload') {
 						const binaryProperty = this.getNodeParameter(
 							'binaryProperty',

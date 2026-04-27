@@ -129,7 +129,9 @@ async function main() {
 	await step(`createFolder(${subFolder})`, () => client.createFolder(subFolder));
 	await step(`move → ${movedPath}`, () => client.moveOrCopy(renamedPath, movedPath, 'move'));
 	await step(`copy → ${copyPath}`, () => client.moveOrCopy(movedPath, copyPath, 'copy'));
-	await step(`list(${SANDBOX}) recursive`, () => client.list(SANDBOX, true));
+	await step(`list(${SANDBOX}) depth=1 (immediate children)`, () => client.list(SANDBOX, 1));
+	await step(`list(${SANDBOX}) depth=0 (unlimited)`, () => client.list(SANDBOX, 0));
+	await step(`list(${SANDBOX}) depth=3 (iterative BFS)`, () => client.list(SANDBOX, 3));
 	await step(`search('hello-renamed', scope=${SANDBOX})`, () =>
 		client.search('hello-renamed', { pathPrefix: SANDBOX, limit: 10 }),
 	);

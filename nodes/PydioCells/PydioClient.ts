@@ -189,15 +189,57 @@ export class PydioClient {
 		}
 	}
 
-	async list(folderPath: string, recursive = false): Promise<PydioNode[]> {
+	async list(folderPath: string, maxDepth = 1): Promise<PydioNode[]> {
+		// `maxDepth`:
+		//   1            → immediate children (single Depth=1 PROPFIND)
+		//   N > 1 finite → iterative breadth-first: keep listing each folder
+		//                  found at the previous level until we reach N
+		//   0 (or any value <= 0) → unlimited (single Depth=infinity PROPFIND
+		//                           — server walks the whole subtree)
 		const norm = normalizePath(folderPath, this.creds.workspace);
-		const res = await this.dav('PROPFIND', norm, {
-			headers: { Depth: recursive ? 'infinity' : '1' },
+
+		if (maxDepth <= 0) {
+			return this._propfindChildren(norm, 'infinity');
+		}
+		if (maxDepth === 1) {
+			return this._propfindChildren(norm, '1');
+		}
+
+		// Iterative BFS up to `maxDepth` levels. Each pass collects the
+		// children of folders discovered in the previous pass.
+		const all: PydioNode[] = [];
+		const seen = new Set<string>();
+		let frontier: string[] = [norm];
+		for (let level = 0; level < maxDepth; level++) {
+			const nextFrontier: string[] = [];
+			for (const folder of frontier) {
+				const children = await this._propfindChildren(folder, '1');
+				for (const c of children) {
+					if (seen.has(c.Path)) continue;
+					seen.add(c.Path);
+					all.push(c);
+					if (c.Type === 'COLLECTION' && level < maxDepth - 1) {
+						nextFrontier.push(c.Path);
+					}
+				}
+			}
+			frontier = nextFrontier;
+			if (!frontier.length) break;
+		}
+		return all;
+	}
+
+	private async _propfindChildren(
+		folder: string,
+		depth: '1' | 'infinity',
+	): Promise<PydioNode[]> {
+		const res = await this.dav('PROPFIND', folder, {
+			headers: { Depth: depth },
 		});
 		const props = parsePropfindEntries(res.body.toString());
-		// Drop the entry that is the folder itself (Pydio includes it as the
-		// first href). Match by trailing slash on the encoded form.
-		const selfHref = `/dav/${urlEncodePath(norm)}/`;
+		// Drop the entry that is the folder itself (Pydio echoes it as the
+		// first href in PROPFIND results).
+		const selfHref = `/dav/${urlEncodePath(folder)}/`;
 		return props
 			.filter((p) => p.href !== selfHref)
 			.map((p) => webdavToNode(p, ''))

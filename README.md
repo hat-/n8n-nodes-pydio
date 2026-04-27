@@ -47,8 +47,17 @@ In n8n create a new credential of type **Pydio Cells API** with:
 | **Copy** | `path`, `targetPath` | `{ copied }` (recursive) |
 | **Rename** | `path`, `newName` | `{ renamed }` |
 | **Delete** | `path`, `permanent` | `{ deleted }` (recursive) |
-| **List** | `path`, `recursive` | `{ results: [...] }` |
+| **List** | `path`, `maxDepth` | `{ results: [...] }` |
 | **Exists** | `path` | `{ exists }` |
+
+### Folder list depth
+
+`Max Depth` controls how many levels are walked. `1` (default) returns only
+the immediate children of the listed folder. `2` adds grandchildren, and so
+on. `0` walks the entire subtree (one server call but can be slow on large
+folders — Pydio's WebDAV honours `Depth: infinity` server-side). Anything
+`>= 2` does iterative breadth-first listing client-side, one PROPFIND per
+folder per level.
 
 ## Path conventions
 
